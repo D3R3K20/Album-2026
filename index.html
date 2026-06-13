@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050816">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0f1e">
@@ -59,19 +61,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 button{cursor:pointer;border:none;background:none;font:inherit;color:inherit}
 input{font:inherit;color:inherit}
 a{color:inherit;text-decoration:none}
-/* ===== LOGIN ===== */
-#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.4s}
-#login-screen.hidden{opacity:0;pointer-events:none}
-.login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;width:320px;max-width:90vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
-.login-trophy{font-size:52px;margin-bottom:16px;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-.login-title{font-size:20px;font-weight:700;margin-bottom:4px}
-.login-sub{font-size:13px;color:var(--text2);margin-bottom:32px}
-.login-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;font-size:15px;outline:none;transition:var(--trans);letter-spacing:3px;text-align:center}
-.login-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-.login-btn{width:100%;margin-top:16px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);padding:12px;font-size:15px;font-weight:600;transition:var(--trans)}
-.login-btn:hover{background:var(--accent2);transform:translateY(-1px)}
-.login-err{color:var(--pink);font-size:12px;margin-top:8px;min-height:18px}
 /* ===== LAYOUT ===== */
 #app{display:flex;min-height:100vh}
 /* SIDEBAR */
@@ -230,8 +219,6 @@ h2{font-size:18px;font-weight:700;margin-bottom:16px}
 .btn-secondary:hover{border-color:var(--accent)}
 .btn-danger{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444}
 .btn-danger:hover{background:rgba(239,68,68,0.2)}
-.pw-input{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;outline:none;width:180px;transition:var(--trans)}
-.pw-input:focus{border-color:var(--accent)}
 .toast{position:fixed;bottom:calc(var(--nav-h) + 16px);left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 20px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.4);opacity:0;transition:all 0.3s;z-index:1000;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 /* ===== SEARCH ===== */
@@ -264,17 +251,6 @@ h2{font-size:18px;font-weight:700;margin-bottom:16px}
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-trophy">🏆</div>
-    <div class="login-title">Álbum Mundial 2026</div>
-    <div class="login-sub">Ingresa tu contraseña para continuar</div>
-    <input type="password" class="login-input" id="pw-input" placeholder="••••••••••" autocomplete="current-password">
-    <button class="login-btn" onclick="tryLogin()">Entrar</button>
-    <div class="login-err" id="login-err"></div>
-  </div>
-</div>
 
 <!-- SIDEBAR OVERLAY -->
 <div id="sidebar-overlay" onclick="closeSidebar()"></div>
@@ -389,16 +365,6 @@ h2{font-size:18px;font-weight:700;margin-bottom:16px}
         <div class="settings-row">
           <div><div class="settings-row-label">Importar datos</div><div class="settings-row-sub">Recupera tu progreso desde un JSON</div></div>
           <label class="btn btn-secondary" style="cursor:pointer">📂 Importar<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
-        </div>
-      </div>
-      <div class="settings-section">
-        <h2>Contraseña</h2>
-        <div class="settings-row">
-          <div><div class="settings-row-label">Cambiar contraseña</div><div class="settings-row-sub">La nueva contraseña se guarda localmente</div></div>
-          <div style="display:flex;gap:8px">
-            <input type="password" class="pw-input" id="new-pw" placeholder="Nueva contraseña">
-            <button class="btn btn-primary" onclick="changePassword()">Guardar</button>
-          </div>
         </div>
       </div>
       <div class="settings-section">
@@ -527,7 +493,6 @@ ALL_STICKERS.forEach(s => STICKER_MAP[s.code] = s);
 
 // ===== STATE =====
 let STATE = {}; // code -> { total, stuck, swap }
-let PASSWORD = 'derek20sep';
 let THEME = 'dark';
 let currentPage = 'home';
 let modalCode = null;
@@ -542,10 +507,6 @@ function loadState() {
     if (d) STATE = JSON.parse(d);
   } catch(e){ STATE = {}; }
   try {
-    const p = localStorage.getItem('album2026_pw');
-    if (p) PASSWORD = p;
-  } catch(e){}
-  try {
     const t = localStorage.getItem('album2026_theme');
     if (t) { THEME = t; applyTheme(); }
   } catch(e){}
@@ -558,20 +519,7 @@ function setStickerState(code, s) {
   saveState();
 }
 
-// ===== LOGIN =====
-function tryLogin() {
-  const val = document.getElementById('pw-input').value;
-  const err = document.getElementById('login-err');
-  if (val === PASSWORD) {
-    document.getElementById('login-screen').classList.add('hidden');
-    setTimeout(() => document.getElementById('login-screen').style.display='none', 400);
-  } else {
-    err.textContent = '❌ Contraseña incorrecta';
-    document.getElementById('pw-input').value='';
-    setTimeout(() => err.textContent='', 2000);
-  }
-}
-document.getElementById('pw-input').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+
 
 // ===== THEME =====
 function applyTheme() {
@@ -1073,14 +1021,7 @@ function importData(event) {
   reader.readAsText(file);
   event.target.value='';
 }
-function changePassword() {
-  const val = document.getElementById('new-pw').value.trim();
-  if (!val || val.length < 4) { toast('❌ Contraseña muy corta (mín. 4 caracteres)'); return; }
-  PASSWORD = val;
-  localStorage.setItem('album2026_pw', PASSWORD);
-  document.getElementById('new-pw').value='';
-  toast('✅ Contraseña actualizada');
-}
+
 function confirmReset() {
   if (confirm('¿Seguro que quieres borrar TODO tu progreso? Esta acción es irreversible.')) {
     STATE = {};
