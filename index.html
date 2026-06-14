@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#050816">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0a0f1e">
@@ -468,11 +466,9 @@ function buildStickers() {
     for (let i=0;i<11;i++) {
       list.push({ code:`${team.id}${i+2}`, name:team.players[i], teamId:team.id, teamName:team.name, teamFlag:team.flag, type:"Jugador", group:team.group });
     }
-    // 13 = foto grupal
-    list.push({ code:`${team.id}13`, name:`Foto Grupal - ${team.name}`, teamId:team.id, teamName:team.name, teamFlag:team.flag, type:"Foto Grupal", group:team.group });
-    // 14-20 = players 11-18
+    // 13-19 = players 11-18 (index 11 = Foto Grupal, 12-18 = jugadores)
     for (let i=11;i<19;i++) {
-      list.push({ code:`${team.id}${i+3}`, name:team.players[i], teamId:team.id, teamName:team.name, teamFlag:team.flag, type:"Jugador", group:team.group });
+      list.push({ code:`${team.id}${i+2}`, name:team.players[i], teamId:team.id, teamName:team.name, teamFlag:team.flag, type:i===11?"Foto Grupal":"Jugador", group:team.group });
     }
   });
   // CC stickers
